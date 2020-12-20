@@ -293,11 +293,15 @@ def train(cmd_args):
     pbar = tqdm(total=len(dataset.test_fact_ls))
     pbar.write('*' * 10 + ' Evaluation ' + '*' * 10)
     rrank = 0.0
-    hits = 0.0
+    hits10 = 0.0
+    hits3 = 0.0
+    hits1 = 0.0
     cnt = 0
 
     rrank_pred = dict([(pred_name, 0.0) for pred_name in PRED_DICT])
-    hits_pred = dict([(pred_name, 0.0) for pred_name in PRED_DICT])
+    hits10_pred = dict([(pred_name, 0.0) for pred_name in PRED_DICT])
+    hits3_pred = dict([(pred_name, 0.0) for pred_name in PRED_DICT])
+    hits1_pred = dict([(pred_name, 0.0) for pred_name in PRED_DICT])
     cnt_pred = dict([(pred_name, 0.0) for pred_name in PRED_DICT])
 
     for pred_name, X, invX, sample in gen_eval_query(dataset, const2ind=kg.ent2idx):
@@ -310,17 +314,25 @@ def train(cmd_args):
 
       rank = torch.sum(tail_score >= true_score).item() + 1
       rrank += 1.0 / rank
-      hits += 1 if rank <= 10 else 0
+      hits10 += 1 if rank <= 10 else 0
+      hits3 += 1 if rank <= 3 else 0
+      hits1 += 1 if rank <= 1 else 0
 
       rrank_pred[pred_name] += 1.0 / rank
-      hits_pred[pred_name] += 1 if rank <= 10 else 0
+      hits10_pred[pred_name] += 1 if rank <= 10 else 0
+      hits3_pred[pred_name] += 1 if rank <= 3 else 0
+      hits1_pred[pred_name] += 1 if rank <= 1 else 0
 
       rank = torch.sum(head_score >= true_score).item() + 1
       rrank += 1.0 / rank
-      hits += 1 if rank <= 10 else 0
+      hits10 += 1 if rank <= 10 else 0
+      hits3 += 1 if rank <= 3 else 0
+      hits1 += 1 if rank <= 1 else 0
 
       rrank_pred[pred_name] += 1.0 / rank
-      hits_pred[pred_name] += 1 if rank <= 10 else 0
+      hits10_pred[pred_name] += 1 if rank <= 10 else 0
+      hits3_pred[pred_name] += 1 if rank <= 3 else 0
+      hits1_pred[pred_name] += 1 if rank <= 1 else 0
 
       cnt_pred[pred_name] += 2
       cnt += 2
@@ -329,34 +341,42 @@ def train(cmd_args):
         with open(logpath, 'w') as f:
           f.write('%i sample eval\n' % cnt)
           f.write('mmr %.4f\n' % (rrank / cnt))
-          f.write('hits %.4f\n' % (hits / cnt))
-
+          f.write('hits@10 %.4f\n' % (hits10 / cnt))
+          f.write('hits@3 %.4f\n' % (hits3 / cnt))
+          f.write('hits@1 %.4f\n' % (hits1 / cnt))
           f.write('\n')
           for pred_name in PRED_DICT:
             if cnt_pred[pred_name] == 0:
               continue
             f.write('mmr %s %.4f\n' % (pred_name, rrank_pred[pred_name] / cnt_pred[pred_name]))
-            f.write('hits %s %.4f\n' % (pred_name, hits_pred[pred_name] / cnt_pred[pred_name]))
+            f.write('hits@10 %s %.4f\n' % (pred_name, hits10_pred[pred_name] / cnt_pred[pred_name]))
+            f.write('hits@3 %s %.4f\n' % (pred_name, hits3_pred[pred_name] / cnt_pred[pred_name]))
+            f.write('hits@1 %s %.4f\n' % (pred_name, hits1_pred[pred_name] / cnt_pred[pred_name]))
 
       pbar.update()
 
     with open(logpath, 'w') as f:
       f.write('complete\n')
       f.write('mmr %.4f\n' % (rrank / cnt))
-      f.write('hits %.4f\n' % (hits / cnt))
+      f.write('hits@10 %.4f\n' % (hits10 / cnt))
+      f.write('hits@3 %.4f\n' % (hits3 / cnt))
+      f.write('hits@1 %.4f\n' % (hits1 / cnt))
       f.write('\n')
 
       tqdm.write('mmr %.4f\n' % (rrank / cnt))
-      tqdm.write('hits %.4f\n' % (hits / cnt))
-
+      tqdm.write('hits@10 %.4f\n' % (hits10 / cnt))
+      tqdm.write('hits@3 %.4f\n' % (hits3 / cnt))
+      tqdm.write('hits@1 %.4f\n' % (hits1 / cnt))
       for pred_name in PRED_DICT:
         if cnt_pred[pred_name] == 0:
           continue
         f.write('mmr %s %.4f\n' % (pred_name, rrank_pred[pred_name] / cnt_pred[pred_name]))
-        f.write('hits %s %.4f\n' % (pred_name, hits_pred[pred_name] / cnt_pred[pred_name]))
+        f.write('hits@10 %s %.4f\n' % (pred_name, hits10_pred[pred_name] / cnt_pred[pred_name]))
+        f.write('hits@3 %s %.4f\n' % (pred_name, hits3_pred[pred_name] / cnt_pred[pred_name]))
+        f.write('hits@1 %s %.4f\n' % (pred_name, hits1_pred[pred_name] / cnt_pred[pred_name]))
 
     os.system('mv %s %s' % (logpath, joinpath(cmd_args.exp_path,
-                                              'performance_hits_%.4f_mmr_%.4f.txt' % ((hits / cnt), (rrank / cnt)))))
+                                              'performance_hits10_%.4f_mmr_%.4f.txt' % ((hits10 / cnt), (rrank / cnt)))))
     pbar.close()
 
   # for Kinship / UW-CSE / Cora data
