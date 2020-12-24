@@ -170,8 +170,8 @@ def train(cmd_args):
           dataset.get_batch_by_q(cmd_args.batchsize):
 
         node_embeds = gcn(dataset)
-        print("num_node", kg.num_nodes)
-        print("size of node_embeds", node_embeds.size())
+        # print("num_node", kg.num_nodes)
+        # print("size of node_embeds", node_embeds.size())
         loss = 0.0
         r_cnt = 0
         for ind, samples in enumerate(samples_by_r):
