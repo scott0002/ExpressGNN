@@ -224,7 +224,7 @@ def train(cmd_args):
         for (pred, args) in grounded_hid:
           for rule_idx in set(grounded_hid[(pred, args)]):
             target = grounded_hid_score[(pred, args)]
-            rule_weight_gradient[rule_idx] += target - compute_MB_proba(dataset.rule_ls, grounded_hid[(pred, args)])
+            rule_weight_gradient[rule_idx] = rule_weight_gradient[rule_idx] + target - compute_MB_proba(dataset.rule_ls, grounded_hid[(pred, args)])
 
         for rule_idx, rule in enumerate(dataset.rule_ls):
           rule.weight += cmd_args.learning_rate_rule_weights * rule_weight_gradient[rule_idx]
