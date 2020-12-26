@@ -169,7 +169,7 @@ class GCN(nn.Module):
 
       hidden = self.MLPs[hop](hidden + node_aggregate)
       hop += 1
-    # print("before cat", hidden[self.const_nodes].size())
+    print("before cat", hidden[self.const_nodes].size())
     read_out_const_nodes_embed = torch.cat((hidden[self.const_nodes], self.const_nodes_free_params), dim=1)
-    # print("after cat", read_out_const_nodes_embed.size())
+    print("after cat", read_out_const_nodes_embed.size())
     return read_out_const_nodes_embed
