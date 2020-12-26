@@ -151,9 +151,9 @@ class GCN(nn.Module):
     :return:
         embeddings of all entities and relations
     """
-    
+    print("init_node_embeds size", self.node_feat.size())
     node_embeds = self.init_node_linear(self.node_feat)
-
+    
     hop = 0
     hidden = node_embeds
     while hop < self.num_hops:
