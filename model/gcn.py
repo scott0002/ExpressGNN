@@ -151,7 +151,7 @@ class GCN(nn.Module):
     :return:
         embeddings of all entities and relations
     """
-    print("init_node_embeds size", self.node_feat.size())
+    # print("init_node_embeds size", self.node_feat.size())
     node_embeds = self.init_node_linear(self.node_feat)
     
     hop = 0
@@ -169,7 +169,7 @@ class GCN(nn.Module):
 
       hidden = self.MLPs[hop](hidden + node_aggregate)
       hop += 1
-    print("before cat", hidden[self.const_nodes].size())
+    # print("before cat", hidden[self.const_nodes].size())
     read_out_const_nodes_embed = torch.cat((hidden[self.const_nodes], self.const_nodes_free_params), dim=1)
-    print("after cat", read_out_const_nodes_embed.size())
+    # print("after cat", read_out_const_nodes_embed.size())
     return read_out_const_nodes_embed
