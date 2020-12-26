@@ -166,10 +166,11 @@ class GCN(nn.Module):
           nodes_attached_on_edges_out *= self.edge_type_masks[edge_type].view(-1, 1)
           nodes_attached_on_edges_out *= self.edge_direction_masks[direction].view(-1, 1)
           node_aggregate.scatter_add_(0, self.edge2node_in, nodes_attached_on_edges_out)
-
+      
       hidden = self.MLPs[hop](hidden + node_aggregate)
+      print("after mlp", hidden.size())
       hop += 1
-    # print("before cat", hidden[self.const_nodes].size())
+    print("before cat", hidden.size())
     read_out_const_nodes_embed = torch.cat((hidden[self.const_nodes], self.const_nodes_free_params), dim=1)
-    # print("after cat", read_out_const_nodes_embed.size())
+    print("after cat", read_out_const_nodes_embed.size())
     return read_out_const_nodes_embed
