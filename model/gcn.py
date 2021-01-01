@@ -101,7 +101,7 @@ class GCN(nn.Module):
         ml_edge_type.append(ml_hop)
       self.edge_type_W.append(ml_edge_type)
     
-    # self.const_nodes_free_params = nn.Parameter(nn.init.kaiming_uniform_(torch.zeros(self.num_ents, free_dim)))
+    self.const_nodes_free_params = nn.Parameter(nn.init.kaiming_uniform_(torch.zeros(self.num_ents, free_dim)))
 
     
   def gen_edge2node_mapping(self):
@@ -171,7 +171,7 @@ class GCN(nn.Module):
       # print("after mlp", hidden.size())
       hop += 1
     # print("before cat", hidden.size())
-    # read_out_const_nodes_embed = torch.cat((hidden[self.const_nodes], self.const_nodes_free_params), dim=1)
+    read_out_const_nodes_embed = torch.cat((hidden[self.const_nodes], self.const_nodes_free_params), dim=1)
     # print("after cat", read_out_const_nodes_embed.size())
-    # return read_out_const_nodes_embed
-    return hidden[self.const_nodes]
+    return read_out_const_nodes_embed
+    # return hidden[self.const_nodes]
