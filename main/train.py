@@ -204,7 +204,7 @@ def train(cmd_args):
           else:
             entropy = compute_entropy(posterior_prob) / cmd_args.entropy_temp
 
-          loss += - (potential.sum() * dataset.rule_ls[ind].weight + entropy) / (potential.size(0) + 1e-6) + obs_xent
+          loss += - (potential.sum() * dataset.rule_ls[ind].weight + entropy) / (potential.size(0) + 1e-6) + cmd_args.mylambda * obs_xent
 
           r_cnt += 1
 
@@ -273,7 +273,7 @@ def train(cmd_args):
             else:
               valid_entropy = compute_entropy(valid_prob) / cmd_args.entropy_temp
 
-            loss += - (valid_potential.sum() + valid_entropy) / (valid_potential.size(0) + 1e-6) + valid_obs_xent
+            loss += - (valid_potential.sum() + valid_entropy) / (valid_potential.size(0) + 1e-6) + cmd_args.mylambda * valid_obs_xent
 
             r_cnt += 1
 
