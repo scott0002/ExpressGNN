@@ -16,6 +16,17 @@ python -m main.train -data_root data/kinship/S1 -slice_dim 8 -batchsize 16 -use_
 ```
 
 To run ExpressGNN on the FB15K-237 dataset on GPU, use the follwoing command line:
+Free Parameters + GNN, Free parameters dim = free_dim, GNN parameters dim = embedding_size - free_dim
 ```
-python -m main.train -data_root data/fb15k-237 -rule_filename cleaned_rules_weight_larger_than_0.9.txt -slice_dim 16 -batchsize 16 -use_gcn 1 -num_hops 1 -embedding_size 128 -gcn_free_size 127 -patience 20 -lr_decay_patience 100 -entropy_temp 1 -load_method 1 -exp_folder exp -exp_name freebase -device cuda
+python -m main.train -slice_dim 16 -batchsize 16 -num_hops 1 -patience 20 -lr_decay_patience 100 -entropy_temp 1 -load_method 1 -exp_folder exp -device cuda -rule_filename cleaned_rules_weight_larger_than_0.9.txt -data_root data/fb15k-237 -embedding_size 128 -gcn_free_size 127  -exp_name freebase -mylambda 1 -exp_mode 1
+```
+
+GNN parameters, Free parameters dim = 0, GNN parameters dim = embedding_size 
+```
+python -m main.train -slice_dim 16 -batchsize 16 -num_hops 1 -patience 20 -lr_decay_patience 100 -entropy_temp 1 -load_method 1 -exp_folder exp -device cuda -rule_filename cleaned_rules_weight_larger_than_0.9.txt -data_root data/fb15k-237 -embedding_size 128 -exp_name freebase -mylambda 1 -exp_mode 2
+```
+
+GNN parameters, Free parameters dim = embedding_size, GNN parameters dim = 0 
+```
+python -m main.train -slice_dim 16 -batchsize 16 -num_hops 1 -patience 20 -lr_decay_patience 100 -entropy_temp 1 -load_method 1 -exp_folder exp -device cuda -rule_filename cleaned_rules_weight_larger_than_0.9.txt -data_root data/fb15k-237 -embedding_size 128 -exp_name freebase -mylambda 1 -exp_mode 3
 ```

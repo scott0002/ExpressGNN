@@ -5,6 +5,9 @@ from common.utils import get_time_stamp
 
 cmd_opt = argparse.ArgumentParser(description='argparser')
 
+cmd_opt.add_argument('-mylambda', default=1, type=int, help='lambda in equation 6')
+cmd_opt.add_argument('-exp_mode', default=1, type=int, help='1 is normal, 2 is no free, 3 is no gnn')
+
 cmd_opt.add_argument('-embedding_size', default=128, type=int, help='embedding size')
 cmd_opt.add_argument('-gcn_free_size', default=64, type=int, help='embedding size of GCN concat params')
 cmd_opt.add_argument('-slice_dim', default=32, type=int, help='slice dimension of posterior params')

@@ -1,6 +1,6 @@
 import torch
 from model.mean_field_posterior import FactorizedPosterior
-from model.gcn import GCN, TrainableEmbedding
+from model.gcn import GCN, TrainableEmbedding, GCNnofree
 from model.mln import ConditionalMLN
 from data_process.dataset import Dataset
 from common.cmd_args import cmd_args
@@ -18,7 +18,7 @@ from os.path import join as joinpath
 import os
 import math
 from collections import Counter
-
+import time
 
 def train(cmd_args):
   if not os.path.exists(cmd_args.exp_path):
@@ -30,6 +30,7 @@ def train(cmd_args):
       f.write(param + ' = ' + str(param_dict[param]) + '\n')
 
   logpath = joinpath(cmd_args.exp_path, 'eval.result')
+  memlogpath = joinpath(cmd_args.exp_path, 'mem_info.txt')
   param_cnt_path = joinpath(cmd_args.exp_path, 'param_count.txt')
 
   # dataset and KG
@@ -38,12 +39,23 @@ def train(cmd_args):
   kg = KnowledgeGraph(dataset.fact_dict, PRED_DICT, dataset)
 
   # model
-  if cmd_args.use_gcn == 1:
+  # if cmd_args.use_gcn == 1:
+  #   gcn = GCN(kg, cmd_args.embedding_size - cmd_args.gcn_free_size, cmd_args.gcn_free_size,
+  #             num_hops=cmd_args.num_hops, num_layers=cmd_args.num_mlp_layers,
+  #             transductive=cmd_args.trans == 1).to(cmd_args.device)
+  # else:
+  #   gcn = TrainableEmbedding(kg, cmd_args.embedding_size).to(cmd_args.device)
+  if cmd_args.exp_mode == 1:
     gcn = GCN(kg, cmd_args.embedding_size - cmd_args.gcn_free_size, cmd_args.gcn_free_size,
               num_hops=cmd_args.num_hops, num_layers=cmd_args.num_mlp_layers,
               transductive=cmd_args.trans == 1).to(cmd_args.device)
-  else:
+  elif cmd_args.exp_mode == 2:
+    gcn = GCNnofree(kg, cmd_args.embedding_size, cmd_args.gcn_free_size,
+              num_hops=cmd_args.num_hops, num_layers=cmd_args.num_mlp_layers,
+              transductive=cmd_args.trans == 1).to(cmd_args.device)
+  elif cmd_args.exp_mode == 3:
     gcn = TrainableEmbedding(kg, cmd_args.embedding_size).to(cmd_args.device)
+
   posterior_model = FactorizedPosterior(kg, cmd_args.embedding_size, cmd_args.slice_dim).to(cmd_args.device)
   mln = ConditionalMLN(cmd_args, dataset.rule_ls)
 
@@ -61,9 +73,9 @@ def train(cmd_args):
   with open(param_cnt_path, 'w') as f:
     cnt_gcn_params = count_parameters(gcn)
     cnt_posterior_params = count_parameters(posterior_model)
-    if cmd_args.use_gcn == 1:
+    if cmd_args.exp_mode == 1 or cmd_args.exp_mode == 2:
       f.write('GCN params count: %d\n' % cnt_gcn_params)
-    elif cmd_args.use_gcn == 0:
+    elif cmd_args.exp_mode == 3:
       f.write('plain params count: %d\n' % cnt_gcn_params)
     f.write('posterior params count: %d\n' % cnt_posterior_params)
     f.write('Total params count: %d\n' % (cnt_gcn_params + cnt_posterior_params))
@@ -203,7 +215,8 @@ def train(cmd_args):
           optimizer.zero_grad()
           loss.backward()
           optimizer.step()
-
+        with open(memlogpath, 'a') as f:
+          f.write('Epoch %d, Memory %d' %(current_epoch, torch.cuda.memory_allocated(0)))
         pbar.update()
         cur_batch += 1
         pbar.set_description(
@@ -362,12 +375,14 @@ def train(cmd_args):
       f.write('hits@10 %.4f\n' % (hits10 / cnt))
       f.write('hits@3 %.4f\n' % (hits3 / cnt))
       f.write('hits@1 %.4f\n' % (hits1 / cnt))
+      f.write('max memory allocated %d\n' % (torch.cuda.max_memory_allocated(0)))
       f.write('\n')
 
       tqdm.write('mmr %.4f\n' % (rrank / cnt))
       tqdm.write('hits@10 %.4f\n' % (hits10 / cnt))
       tqdm.write('hits@3 %.4f\n' % (hits3 / cnt))
       tqdm.write('hits@1 %.4f\n' % (hits1 / cnt))
+      tqdm.write('max memory allocated %d\n' % (torch.cuda.max_memory_allocated(0)))
       for pred_name in PRED_DICT:
         if cnt_pred[pred_name] == 0:
           continue
@@ -502,8 +517,12 @@ def compute_MB_proba(rule_ls, ls_rule_idx):
 
 
 if __name__ == '__main__':
+  start = time.time()
   random.seed(cmd_args.seed)
   np.random.seed(cmd_args.seed)
   torch.manual_seed(cmd_args.seed)
 
   train(cmd_args)
+  end = time.time()
+
+  print("elapsed time:", (end - start)/60, "mins")
